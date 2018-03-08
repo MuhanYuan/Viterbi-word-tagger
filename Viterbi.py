@@ -1,11 +1,12 @@
+## Muhan Yuan
+## python Viterbi.py POS.train POS.test
+
 import numpy as np
 import datetime
 import sys
 
 def max_index(l):
-    max_value = max(l)
-    max_index = l.index(max_value)
-    return max_index
+    return l.index(max(l))
 
 def calculate_pr(dic,c2,smooth=False,length = 0):
     sum = 0.0
@@ -28,9 +29,11 @@ def main():
 
     with open(sys.argv[2],"r") as filedata:
         test_datatable = [[i.rsplit('/',1) for i in j.strip().split(" ")] for j in filedata]
+
+
     outfile = open("POS.test.out","w")
     bigram_tag_dic = {} # tag1 -- tag2
-    word_tag_dic ={}  # tag -- word
+    word_tag_dic = {}  # tag -- word
     tag_word_dic = {} # word -- tag
     tag_list = []
     word_list = []
@@ -50,6 +53,7 @@ def main():
 
                 if "|" in cur_tag:
                     cur_tag = cur_tag.split("|")
+
                 cur_word = line[word_ind][0]
             except:
                 continue
@@ -135,9 +139,6 @@ def main():
     word_list_len = len(word_list)
     pop_tag = sorted(word_tag_dic.keys(),key = lambda x:len(word_tag_dic[x]),reverse=True)[0]
 
-    count =0
-    correct_count = 0
-    spe_count = 0
     for line in test_datatable:
         score = []
         backptr = []
@@ -150,8 +151,7 @@ def main():
                     temp_value = calculate_pr(word_tag_dic[tag],line[word_num][0],smooth=True,length = word_list_len) * calculate_pr(bigram_tag_dic["Phi"],tag,smooth = True, length = tag_list_len)
                     temp_score_row.append(temp_value)
                     temp_back_row.append(0)
-                # score.append(temp_score_row)
-                # backptr.append(temp_back_row)
+
             else:
                 # Iteration Step
                 for tag1 in word_tag_dic:
@@ -165,6 +165,8 @@ def main():
             backptr.append(temp_back_row)
 
         # Sequence Identification
+        count =0
+        correct_count = 0
         line_output = ""
         seq_list=[]
         for w in sorted(range(len(line)),reverse= True):
@@ -188,6 +190,8 @@ def main():
     print "Viterbi accuracy: " + str(float(correct_count)/count)
 
     # baseline
+    # using most common tag of the word as prediction result. If the word never show up in the training data, using the
+    # overall most popular tag
     count =0
     correct_count = 0
     for line in test_datatable:
